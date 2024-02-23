@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { auth } from '../config/firebase';
-import { reauthenticateWithCredential, EmailAuthProvider, updateEmail, updatePassword, deleteUser } from 'firebase/auth';
+import { reauthenticateWithCredential, EmailAuthProvider, updateEmail, updatePassword, deleteUser, signOut } from 'firebase/auth';
+import { AuthStack } from '../App';
 
 const UserProfileScreen = ({ navigation }) => {
   const [newEmail, setNewEmail] = useState('');
@@ -17,8 +18,10 @@ const UserProfileScreen = ({ navigation }) => {
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updateEmail(auth.currentUser, newEmail);
       Alert.alert('Success', 'Email updated successfully.');
-      // Rediriger vers la page de connexion après la mise à jour réussie
-      props.navigation.navigate("Login");
+      // Déconnecter l'utilisateur après la mise à jour de l'e-mail
+      await signOut(auth);
+      // Rediriger vers la page de connexion
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -33,8 +36,10 @@ const UserProfileScreen = ({ navigation }) => {
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, newPassword);
       Alert.alert('Success', 'Password updated successfully.');
-      // Rediriger vers la page de connexion après la mise à jour réussie
-      props.navigation.navigate("Login");
+      // Déconnecter l'utilisateur après la mise à jour du mot de passe
+      await signOut(auth);
+      // Rediriger vers la page de connexion
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -49,15 +54,17 @@ const UserProfileScreen = ({ navigation }) => {
       await reauthenticateWithCredential(auth.currentUser, credential);
       await deleteUser(auth.currentUser);
       Alert.alert('Success', 'Account deleted successfully.');
-      // Rediriger vers la page de connexion après la suppression réussie
+      // Déconnecter l'utilisateur après la suppression du compte
+      await signOut(auth);
+      // Rediriger vers la page de connexion
       navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
-
+  
   return (
-    <View>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title2}>Authenticate:</Text>
       <TextInput
         style={styles.input}
@@ -94,20 +101,19 @@ const UserProfileScreen = ({ navigation }) => {
         <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Update Password</Text>
       </TouchableOpacity>
 
-      <View>
-        <TouchableOpacity style={styles.button} onPress={handleDeleteUser}>
-          <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Delete Account</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      <TouchableOpacity style={styles.button} onPress={handleDeleteUser}>
+        <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Delete Account</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,

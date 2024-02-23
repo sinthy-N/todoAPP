@@ -10,18 +10,25 @@ import { Ionicons } from "@expo/vector-icons";
 import UserProfileScreen from "./UserProfileScreen";
 import CheckBoxIcon from "react-native-elements/dist/checkbox/CheckBoxIcon";
 import { CheckBox } from "react-native-elements/dist/checkbox/CheckBox";
+import { signOut } from 'firebase/auth';
 
 const deleteTodo = async (todo) => {
   try {
     
-    
     const dbRef = doc(database, 'todos', todo.id);
     await deleteDoc(dbRef);
-    
-
-   
+      
   } catch (err) {
     console.error('Error deleting todo:', err);
+  }
+};
+
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    // Add any additional cleanup or navigation logic if needed
+  } catch (error) {
+    console.error('Error logging out:', error);
   }
 };
 
@@ -55,19 +62,14 @@ const TodoScreen = (props) => {
     <View style={styles.container}>
       <View style={styles.buttonsContainer}>
         <Button color="#6B36AF" title="Todos" onPress={() => setActiveView("todos")} />
-        {/* {activeView === "todos" && (
-          <Button
-            onPress={() => props.navigation.navigate("CreateVoiceScreen")}
-            title="Create Voice"
-          />
-        )} */}
         
         <Button color="#6B36AF" title="User Profile" onPress={() => props.navigation.navigate(UserProfileScreen)} />
+        <Button title="Logout" onPress={handleLogout} color="#6B36AF" />
+
       </View>
       <ScrollView style={styles.scrollView}>
         {activeView === "todos" && todos.map((todo)  => (
               
-             
           <ListItem key={todo.id}
           bottomDivider
           onPress={() => {
@@ -82,19 +84,12 @@ const TodoScreen = (props) => {
               checked={Pressed}
               onPress={() => setDone(!Pressed)}/>
 
-                    
-            
-            
-             
-
             <ListItem.Content> 
-                       
-                                            
+                               
               <ListItem.Title style={styles.title4}>{todo.title}</ListItem.Title>
               <ListItem.Subtitle>{todo.description}</ListItem.Subtitle>
               <Button onPress={() => deleteTodo(todo)} color={"red"} title="Delete"></Button>
-              
-            
+
             </ListItem.Content>
           </ListItem>
         ))}
