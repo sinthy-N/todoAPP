@@ -1,157 +1,101 @@
 import React, { useState } from "react";
-import {
-  Button,
-  View,
-  StyleSheet,
-  TextInput,
-  ScrollView,Text, TouchableOpacity
-} from "react-native";
+import { View, StyleSheet, TextInput, ScrollView, Text, TouchableOpacity } from "react-native";
 import { database, auth } from '../config/firebase';
-import { getFirestore, collection, addDoc, onSnapshot , doc , getDoc } from "firebase/firestore";
-
-
-
+import { collection, addDoc } from "firebase/firestore";
+import { LinearGradient } from 'expo-linear-gradient'; // Assurez-vous d'installer expo-linear-gradient
 
 const AddTodoScreen = (props) => {
   const [state, setState] = useState({
-    title : '',
-    description: '', // Initialize with an empty string
+    title: '',
+    description: '',
   });
 
-  const handleChangeText = (value, title) => {
-    setState({ ...state, [title]: value });
+  const handleChangeText = (name, value) => {
+    setState({ ...state, [name]: value });
   };
-  
 
   const saveNewTodo = async () => {
-    try {
-      if (state.title === "") {
-        alert("Please provide a title");
-      } else {
-          
-        const todosCollection = collection( database, 'todos');
+    if (state.title === "") {
+      alert("Please provide a title");
+    } else {
+      try {
+        const todosCollection = collection(database, 'todos');
         await addDoc(todosCollection, {
           title: state.title,
           description: state.description,
-          userId : auth.currentUser.uid,
-          
+          userId: auth.currentUser.uid,
         });
-
         props.navigation.navigate("TodosList");
-  
-        // Redirect the user to the "TodosList" screen after successful creation
-        // You'll need to pass the navigation prop to this function
+      } catch (error) {
+        console.error('Error saving new todo:', error);
       }
-    } catch (error) {
-      console.log('Error saving new todo:', error);
     }
   };
-  
 
   return (
-    <ScrollView style={styles.container}>
-      <View>
-        <Text></Text>
-      </View>
-      <View style={styles.input}>
-      
+    <LinearGradient colors={['#957DAD', '#BFA2DB']} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.inputGroup}>
           <TextInput
-          placeholder ="Titre"
-          value ={state.title}
-          onChangeText={(value) => handleChangeText(value, "title")}
-          
-        />
-      </View>
-
-      {/* Description Input */}
-      <View style={styles.input}>
-        <TextInput
-          placeholder="Description"
-          multiline={true}
-          numberOfLines={4}
-          onChangeText={(value) => handleChangeText(value, "description")}
-          value={state.description}
-        />
-
-<Text></Text>
-<Text></Text>
-
-
-
-      <TouchableOpacity style={styles.button} onPress={saveNewTodo}>
-      <Text style={{fontWeight: 'bold', color: '#fff', fontSize: 18}}> Save To Do </Text>
-      </TouchableOpacity>
-      </View>
-
-
-      
-    </ScrollView>
+            placeholder="Title"
+            placeholderTextColor="#666"
+            value={state.title}
+            onChangeText={(value) => handleChangeText("title", value)}
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <TextInput
+            placeholder="Description"
+            placeholderTextColor="#666"
+            multiline={true}
+            numberOfLines={4}
+            value={state.description}
+            onChangeText={(value) => handleChangeText("description", value)}
+            style={[styles.input, styles.inputDescription]}
+          />
+        </View>
+        <TouchableOpacity style={styles.button} onPress={saveNewTodo}>
+          <Text style={styles.buttonText}>Save To Do</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 35,
     backgroundColor: "#fff",
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: "#6B36AF",
-    alignSelf: "center",
-    paddingBottom: 24,
-  },
-  input: {
-    backgroundColor: "#A99ABB",
-    height: 58,
-    marginBottom: 20,
+  
+  inputGroup: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 15,
     fontSize: 16,
-    borderRadius: 10,
-    padding: 12,
-    
-  },
-  backImage: {
-    width: "100%",
-    height: 340,
-    position: "absolute",
-    top: 0,
-    resizeMode: 'cover',
-  },
-  whiteSheet: {
-    width: '100%',
-    height: '75%',
-    position: "absolute",
-    bottom: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 60,
-  },
-  form: {
-    flex: 1,
-    justifyContent: 'center',
-    marginHorizontal: 30,
-  },
-  button: {
-    backgroundColor: '#6B36AF',
-    height: 55,
-    width: 200,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginHorizontal: 20,
     marginTop: 10,
-    margin: 85
-  },
-  title2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: "#6B36AF",
-    paddingBottom: 24,
-  },
-  title3: {
-    fontSize: 15,
-    color: "#6B36AF",
-    paddingBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   
+  button: {
+    marginTop: 20,
+    height: 35,
+    backgroundColor: '#6B36AF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 18,
+  },
 });
 
 export default AddTodoScreen;

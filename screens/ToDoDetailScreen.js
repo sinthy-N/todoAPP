@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import {
   ScrollView,
-  Button,
   View,
   Alert,
   ActivityIndicator,
   StyleSheet,
+  Text,
+  TouchableOpacity
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { auth, database } from "../config/firebase";
-import { getFirestore, collection, addDoc, onSnapshot , doc, getDoc , updateDoc, deleteDoc, setDoc } from "firebase/firestore";
-
-
-
+import { database } from "../config/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import LinearGradient from 'react-native-linear-gradient';
+import { Ionicons } from "@expo/vector-icons";
 
 const TodoDetailScreen = (props) => {
   const initialState = {
@@ -29,70 +29,42 @@ const TodoDetailScreen = (props) => {
   };
 
   const getTodoById = async (id) => {
-    try {
-      const dbRef = doc(database, 'todos', id);
-      const docSnapshot = await getDoc(dbRef);
-      if (docSnapshot.exists()) {
-        const todo = docSnapshot.data();
-        setTodo({ ...todo, id: docSnapshot.id });
-        setLoading(false);
-      } else {
-        console.log('Todo not found');
-      }
-    } catch (err) {
-      console.error('Error fetching todo:', err);
+    const dbRef = doc(database, 'todos', id);
+    const docSnap = await getDoc(dbRef);
+    if (docSnap.exists()) {
+      setTodo({ ...docSnap.data(), id: docSnap.id });
+      setLoading(false);
+    } else {
+      Alert.alert("Document not found");
     }
   };
-  
-  const deleteTodo = async () => {
-    try {
-      
-      
-      const dbRef = doc(database, 'todos', todo.id);
-      await deleteDoc(dbRef);
-      
 
-      props.navigation.navigate("TodosList");
-      // Navigate to "TodosList" screen after deleting
-      // You'll need to pass the navigation prop to this function
-    } catch (err) {
-      console.error('Error deleting todo:', err);
-    }
+  const deleteTodo = async () => {
+    const dbRef = doc(database, 'todos', todo.id);
+    await deleteDoc(dbRef);
+    props.navigation.navigate("TodosList");
   };
-  
 
   const openConfirmationAlert = () => {
     Alert.alert(
       "Removing the Todo",
       "Are you sure?",
       [
-        { text: "No", onPress: () => console.log("canceled") },
-        { text: "Yes", onPress: () => deleteTodo() },
-        
+        { text: "No" },
+        { text: "Yes", onPress: deleteTodo },
       ],
-      {
-        cancelable: true,
-      }
+      { cancelable: true }
     );
   };
 
   const updateTodo = async () => {
-    try {
-      const todoRef = doc(database, 'todos', todo.id);
-      await setDoc(todoRef, {
-        title: todo.title,
-        description: todo.description,
-        userId : auth.currentUser.uid
-      });
-
-      props.navigation.navigate("TodosList");
-      // Reset the todo state (if needed)
-      // props.navigation.navigate("TodosList"); // You'll need to pass the navigation prop to this function
-    } catch (err) {
-      console.error('Error updating todo:', err);
-    }
+    const dbRef = doc(database, 'todos', todo.id);
+    await updateDoc(dbRef, {
+      title: todo.title,
+      description: todo.description,
+    });
+    props.navigation.navigate("TodosList");
   };
-  
 
   useEffect(() => {
     getTodoById(props.route.params.todoId);
@@ -107,37 +79,34 @@ const TodoDetailScreen = (props) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View>
-        <TextInput 
+    <LinearGradient colors={['#957DAD', '#BFA2DB']} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <TextInput
           placeholder="Title"
-          autoCompleteType="todotitle"
-          style={styles.input}
+          placeholderTextColor="#666"
           value={todo.title}
           onChangeText={(value) => handleTextChange(value, "title")}
-        />
-      </View>
-      <View>
-        <TextInput
-          autoCompleteType="description"
-          placeholder="Description"
           style={styles.input}
+        />
+        <TextInput
+          placeholder="Description"
+          placeholderTextColor="#666"
+          multiline={true}
+          numberOfLines={4}
           value={todo.description}
           onChangeText={(value) => handleTextChange(value, "description")}
+          style={[styles.input, styles.inputDescription]}
         />
-      </View>
-      <View style={styles.btn} backgroundColor= 'lightgray' borderRadius='15'>
-        <Button
-        
-          title="Delete"
-          onPress={() => openConfirmationAlert()}
-          color="red"
-        />
-      </View>
-      <View backgroundColor= 'lightgray' borderRadius='15'>
-        <Button  title="Update" onPress={() => updateTodo()} color="#26B943" />
-      </View>
-    </ScrollView>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={openConfirmationAlert}>
+            <Ionicons name="trash-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={updateTodo}>
+            <Text style={styles.buttonText}>Update</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
