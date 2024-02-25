@@ -11,8 +11,10 @@ import {
 import { TextInput } from "react-native-gesture-handler";
 import { database } from "../config/firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import LinearGradient from 'react-native-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 
 const TodoDetailScreen = (props) => {
   const initialState = {
@@ -23,9 +25,11 @@ const TodoDetailScreen = (props) => {
 
   const [todo, setTodo] = useState(initialState);
   const [loading, setLoading] = useState(true);
+  const [isModified, setIsModified] = useState(false);
 
   const handleTextChange = (value, prop) => {
     setTodo({ ...todo, [prop]: value });
+    setIsModified(true);
   };
 
   const getTodoById = async (id) => {
@@ -45,15 +49,15 @@ const TodoDetailScreen = (props) => {
     props.navigation.navigate("TodosList");
   };
 
-  const openConfirmationAlert = () => {
+  const confirmDelete = () => {
     Alert.alert(
-      "Removing the Todo",
-      "Are you sure?",
+      "Suppression de la Todo",
+      "Êtes-vous sûr ?",
       [
-        { text: "No" },
-        { text: "Yes", onPress: deleteTodo },
+        { text: "Non" },
+        { text: "Oui", onPress: deleteTodo },
       ],
-      { cancelable: true }
+      { cancelable: false }
     );
   };
 
@@ -63,8 +67,27 @@ const TodoDetailScreen = (props) => {
       title: todo.title,
       description: todo.description,
     });
+    setIsModified(false);
     props.navigation.navigate("TodosList");
   };
+
+  const confirmUpdate = () => {
+    if (isModified) {
+      Alert.alert(
+        "Modification de la Todo",
+        "Êtes-vous sûr ?",
+        [
+          { text: "Non" },
+          { text: "Oui", onPress: updateTodo },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      Alert.alert("Aucun changement", "Aucune modification n'a été apportée sur la Todo.");
+    }
+  };
+
+  
 
   useEffect(() => {
     getTodoById(props.route.params.todoId);
@@ -81,30 +104,31 @@ const TodoDetailScreen = (props) => {
   return (
     <LinearGradient colors={['#957DAD', '#BFA2DB']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <TextInput
-          placeholder="Title"
-          placeholderTextColor="#666"
-          value={todo.title}
-          onChangeText={(value) => handleTextChange(value, "title")}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Description"
-          placeholderTextColor="#666"
-          multiline={true}
-          numberOfLines={4}
-          value={todo.description}
-          onChangeText={(value) => handleTextChange(value, "description")}
-          style={[styles.input, styles.inputDescription]}
-        />
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={openConfirmationAlert}>
-            <Ionicons name="trash-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={updateTodo}>
-            <Text style={styles.buttonText}>Update</Text>
-          </TouchableOpacity>
+        <View style={styles.inputGroup}>
+          <TextInput
+            placeholder="Title"
+            placeholderTextColor="#666"
+            value={todo.title}
+            onChangeText={(value) => handleTextChange(value, "title")}
+            style={styles.input}
+          />
+          <View style={styles.border} />
+          <TextInput
+            placeholder="Description"
+            placeholderTextColor="#666"
+            multiline={true}
+            numberOfLines={4}
+            value={todo.description}
+            onChangeText={(value) => handleTextChange(value, "description")}
+            style={[styles.input, styles.inputDescription]}
+          />
         </View>
+        <TouchableOpacity style={[styles.button, styles.updateButton]} onPress={confirmUpdate}>
+          <Text style={styles.buttonText}>Modifier</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={confirmDelete}>
+          <FontAwesomeIcon icon={faTrash} size={24} style={{color: "#fff",}} />
+        </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
@@ -114,6 +138,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 35,
+    backgroundColor: "#fff",
   },
   loader: {
     left: 0,
@@ -124,100 +149,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  inputGroup: {
-    flex: 1,
-    padding: 0,
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
-  },
-  btn: {
-    marginBottom: 7,
-  },
-  
-  buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 15,
-    fontWeight: 'bold',
-    
-  },
-  scrollView: {
-    flex: 1,
-    
-  },
-  createVoiceButton: {
-    position: "absolute",
-    right: 30,
-    bottom: 30,
-  },
-  createTodoButton: {
-    position: "absolute",
-    right: 30,
-    bottom: 30,
-  },
- 
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: "#6B36AF",
-    alignSelf: "center",
-    paddingBottom: 24,
-  },
-  input: {
-    backgroundColor: "#A99ABB",
-    height: 58,
-    marginBottom: 20,
+  button: {
+    marginTop: 16,
+    marginBottom: 16,
     fontSize: 16,
     borderRadius: 10,
-    padding: 12,
-    
-  },
-  backImage: {
-    width: "100%",
-    height: 340,
-    position: "absolute",
-    top: 0,
-    resizeMode: 'cover',
-  },
-  whiteSheet: {
-    width: '100%',
-    height: '75%',
-    position: "absolute",
-    bottom: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 60,
-  },
-  form: {
-    flex: 1,
-    justifyContent: 'center',
-    marginHorizontal: 30,
-  },
-  button: {
-    backgroundColor: '#6B36AF',
-    height: 55,
-    width: 200,
-    borderRadius: 10,
+    height: 50,
+    width: '100%', // Adjust the width as needed
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center', // Center the button horizontally
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  updateButton: {
+    backgroundColor: '#4CAF50', // Green color as an example
+    marginBottom: 8,
+  },
+  deleteButton: {
+    backgroundColor: '#FF5252', // Red color as an example
+    marginTop: 8, // Ajustez la valeur selon vos besoins pour rapprocher les boutons
+
+  },
+  inputGroup: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 16,
     marginTop: 10,
-    margin: 95
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  title2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: "#6B36AF",
-    paddingBottom: 24,
+  border: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginHorizontal: -15,
+    marginTop: 10,
   },
-  title3: {
-    fontSize: 15,
-    color: "#6B36AF",
-    paddingBottom: 24,
-  },
-  placeholder: {
-    color: 'red',
-    opacity: 1, 
-  }
 });
 
 export default TodoDetailScreen;

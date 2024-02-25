@@ -12,8 +12,8 @@ export default function Signup({ navigation }) {
 const onHandleSignup = () => {
     if (email !== '' && password !== '') {
   createUserWithEmailAndPassword(auth, email, password)
-        .then(() => console.log('Signup success'))
-        .catch((err) => Alert.alert("Login error", err.message));
+        .then(() => console.log('Inscription réussie'))
+        .catch((err) => Alert.alert("Erreur d'inscription", "Veuillez réessayer."));
     }
   };
   
@@ -22,10 +22,10 @@ const onHandleSignup = () => {
       <Image source={Purple} style={styles.backImage} />
       <View style={styles.whiteSheet} />
       <SafeAreaView style={styles.form}>
-        <Text style={styles.title}>Sign Up</Text>
+        <Text style={styles.title}>S'inscrire</Text>
          <TextInput
         style={styles.input}
-        placeholder="Enter email"
+        placeholder="Saisir un email"
         autoCapitalize="none"
         keyboardType="email-address"
         textContentType="emailAddress"
@@ -35,7 +35,7 @@ const onHandleSignup = () => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Enter password"
+        placeholder="Saisir un mot de passe"
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry={true}
@@ -44,12 +44,12 @@ const onHandleSignup = () => {
         onChangeText={(text) => setPassword(text)}
       />
       <TouchableOpacity style={styles.button} onPress={onHandleSignup}>
-        <Text style={{fontWeight: 'bold', color: '#fff', fontSize: 18}}> Sign Up</Text>
+        <Text style={{fontWeight: 'bold', color: '#fff', fontSize: 18}}> S'inscrire</Text>
       </TouchableOpacity>
       <View style={{marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center'}}>
-        <Text style={{color: 'gray', fontWeight: '600', fontSize: 14}}>Don't have an account? </Text>
+        <Text style={{color: 'gray', fontWeight: '600', fontSize: 14}}>Vous avez déjà un compte ? </Text>
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={{color: '#6B36AF', fontWeight: '600', fontSize: 14}}> Log In</Text>
+          <Text style={{color: '#6B36AF', fontWeight: '600', fontSize: 14}}> Se connecter</Text>
         </TouchableOpacity>
       </View>
       </SafeAreaView>
@@ -72,7 +72,6 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#F6F7FB",
     height: 58,
-    marginBottom: 20,
     fontSize: 16,
     borderRadius: 10,
     padding: 12,

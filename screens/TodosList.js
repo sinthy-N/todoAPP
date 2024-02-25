@@ -3,8 +3,16 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput, Text } from 
 import { ListItem, CheckBox, Icon } from "react-native-elements";
 import { database, auth } from '../config/firebase';
 import { collection, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
-import { LinearGradient } from 'expo-linear-gradient'; // Assurez-vous d'installer expo-linear-gradient
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faDeleteLeft } from '@fortawesome/free-solid-svg-icons/faDeleteLeft';
+
+import { faCirclePlus } from '@fortawesome/free-solid-svg-icons/faCirclePlus';
+
+import { Alert } from "react-native";
+
+
 
 const TodoScreen = (props) => {
   const [todos, setTodos] = useState([]);
@@ -35,8 +43,20 @@ const TodoScreen = (props) => {
     try {
       await deleteDoc(todoRef);
     } catch (error) {
-      console.error("Error deleting todo:", error);
+      console.error("Erreur lors de la suppression d'une todo :", error);
     }
+  };
+
+  const confirmDelete = (todoId) => {
+    Alert.alert(
+      "Suppression de la Todo",
+      "Êtes-vous sûr ?",
+      [
+        { text: "Non" },
+        { text: "Oui", onPress: () => deleteTodo(todoId) },
+      ],
+      { cancelable: false }
+    );
   };
 
   const filteredTodos = todos.filter(todo =>
@@ -50,7 +70,7 @@ const TodoScreen = (props) => {
         <Ionicons name="search" size={20} color="#B1B1B1" style={{ marginLeft: 10 }} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search Todos"
+          placeholder="Rechercher une Todo"
           placeholderTextColor="#B1B1B1"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -69,17 +89,17 @@ const TodoScreen = (props) => {
                 <ListItem.Title style={styles.title}>{todo.title}</ListItem.Title>
                 <ListItem.Subtitle>{todo.description}</ListItem.Subtitle>
               </ListItem.Content>
-              <TouchableOpacity onPress={() => deleteTodo(todo.id)}>
-                <Ionicons name="trash-bin" size={24} color="red" />
+              <TouchableOpacity onPress={() => confirmDelete(todo.id)}>
+                <FontAwesomeIcon icon={faDeleteLeft} size={24} style={{color: "red",}} />
+
               </TouchableOpacity>
             </ListItem>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-
       <TouchableOpacity style={styles.createTodoButton} onPress={() => props.navigation.navigate("CreateTodoScreen")}>
-        <Ionicons name="add-circle" size={64} color="#6B36AF" />
+        <FontAwesomeIcon icon={faCirclePlus} size={64} color="#6B36AF" />
       </TouchableOpacity>
     </LinearGradient>
   );
