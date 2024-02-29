@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderRadius: 10,
     padding: 12,
+    marginBottom: 10,
   },
   backImage: {
     width: "100%",

@@ -23,7 +23,7 @@ export default function Login({ navigation }) {
       <Image source={Purple} style={styles.backImage} />
       <View style={styles.whiteSheet} />
       <SafeAreaView style={styles.form}>
-        <Text style={styles.title}>Log In</Text>
+        <Text style={styles.title}>Connexion</Text>
         <TextInput
           style={styles.input}
           placeholder="Saisir votre email"
@@ -76,6 +76,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderRadius: 10,
     padding: 12,
+    marginBottom: 10,
+    
   },
   backImage: {
     width: "100%",
