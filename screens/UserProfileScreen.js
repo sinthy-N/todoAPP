@@ -137,7 +137,7 @@ const UserProfileScreen = ({ navigation }) => {
       await reauthenticateWithCredential(auth.currentUser, credential);
       // Création d'un lot de suppression pour les tâches liées à l'utilisateur
       const batch = writeBatch(database);
-      // Crée une requête pour récupérer des documents dans la collection "todos"
+      // Crée une requête pour récupérer des TODO'S dans la collection "todos"
       const q = query(
         collection(database, "todos"),
         where("userId", "==", auth.currentUser.uid)
