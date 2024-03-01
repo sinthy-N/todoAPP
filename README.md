@@ -34,8 +34,8 @@ https://www.figma.com/file/yS6qQsOgLKQr62iFJyGQLM/To-do-list-(Community)?type=de
 
 ![Diagramme de Gantt](./assets/gantt.png)
 
-![Diagramme de flux](react-native-firebase/assets/flux.png)
+![Diagramme de flux](./assets/flux.png)
 
-![Usecase](react-native-firebase/assets/usecase.png)
+![Usecase](./assets/usecase.png)
 
-![Base de données](react-native-firebase/assets/bdd.png)
+![Base de données](./assets/bdd.png)
