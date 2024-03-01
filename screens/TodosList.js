@@ -23,6 +23,8 @@ const Purple = require("../assets/Purple.jpg")
 const TodoScreen = (props) => {
   // Déclaration d'un état `todos` pour stocker les données des todos
   const [todos, setTodos] = useState([]);
+
+  // Search Bar
   // Déclaration d'un état `searchQuery` pour stocker la valeur de la recherche
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -48,6 +50,8 @@ const TodoScreen = (props) => {
     return () => unsubscribe();
   }, []); // Le tableau vide en tant que dépendance signifie que cet effet s'exécute une seule fois lors du montage initial du composant
 
+
+  // Check Box
   // Fonction asynchrone pour basculer l'état 'done' d'un todo dans la base de données
   const toggleTodoDone = async (todoId, isDone) => {
     // Obtention d'une référence au document du todo dans la collection "todos" de la base de données Firestore

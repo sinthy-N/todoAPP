@@ -1,8 +1,9 @@
 // Import des modules nécessaires depuis React et React Native
 import React, { useState } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
-import { auth } from '../config/firebase';
+import { auth, database } from '../config/firebase';
 import { reauthenticateWithCredential, sendEmailVerification, EmailAuthProvider, verifyBeforeUpdateEmail, updatePassword, deleteUser, signOut } from 'firebase/auth';
+import { getDocs, query, where, collection, writeBatch, querySnapsho, doc, forEach } from 'firebase/firestore';
 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
@@ -15,6 +16,7 @@ const UserProfileScreen = ({ navigation }) => {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Update email de l'utilisateur
   const handleUpdateEmail = async () => {
@@ -57,6 +59,21 @@ const UserProfileScreen = ({ navigation }) => {
     }
   };
 
+  // Définition d'une fonction confirmUpdate pour afficher une boîte de dialogue de confirmation de la mise à jour
+  const confirmUpdateEmail = () => {
+
+    // Affichage d'une alerte avec les options "Oui" et "Non", et la fonction handleUpdateEmail comme action si "Oui" est sélectionné
+    Alert.alert(
+      "Modification de votre email", // Titre de l'alerte
+      "Êtes-vous sûr ?", // Message de l'alerte
+      [
+        { text: "Non" }, // Option "Non" de l'alerte
+        { text: "Oui", onPress: handleUpdateEmail }, // Option "Oui" de l'alerte avec l'action updateTodo
+      ],
+      { cancelable: false } // La boîte de dialogue ne peut pas être annulée en appuyant à l'extérieur
+    );
+
+  };
 
   // Update du mot de passe de l'utilisateur
   const handleUpdatePassword = async () => {
@@ -88,39 +105,82 @@ const UserProfileScreen = ({ navigation }) => {
       navigation.navigate('Login');
     } catch (error) {
       // En cas d'erreur, affichage d'une alerte avec un message d'erreur
-      Alert.alert('Une erreur s\'est produite', 'Assurez-vous de fournir le mot de passe correct pour modifier votre mot de passe.' /* + error.message */);
+      Alert.alert('Une erreur s\'est produite', 'Assurez-vous de fournir le mot de passe correct pour modifier votre mot de passe.');
     }
   };
 
+  // Définition d'une fonction confirmUpdate pour afficher une boîte de dialogue de confirmation de la mise à jour
+  const confirmUpdatePassword = () => {
 
-  // Fonction pour gérer la suppression du compte de l'utilisateur
-  const handleDeleteUser = async () => {
+    // Affichage d'une alerte avec les options "Oui" et "Non", et la fonction handleUpdatePassword comme action si "Oui" est sélectionné
+    Alert.alert(
+      "Modification de votre mot de passe", // Titre de l'alerte
+      "Êtes-vous sûr ?", // Message de l'alerte
+      [
+        { text: "Non" }, // Option "Non" de l'alerte
+        { text: "Oui", onPress: handleUpdatePassword }, // Option "Oui" de l'alerte avec l'action updateTodo
+      ],
+      { cancelable: false } // La boîte de dialogue ne peut pas être annulée en appuyant à l'extérieur
+    );
+  };
+
+
+  // Fonction pour gérer la suppression du compte de l'utilisateur avec ses todos
+  const handleDeleteUserAndToDos = async () => {
     try {
       // Création d'une instance de credential pour la réauthentification
       const credential = EmailAuthProvider.credential(
         auth.currentUser.email, // Utilisation de l'adresse e-mail actuelle de l'utilisateur
         password // Utilisation du mot de passe fourni par l'utilisateur
       );
-
-      // Réauthentification de l'utilisateur en utilisant le credential
+      // Ré-authentification de l'utilisateur avec les nouvelles informations d'identification
       await reauthenticateWithCredential(auth.currentUser, credential);
+      // Création d'un lot de suppression pour les tâches liées à l'utilisateur
+      const batch = writeBatch(database);
+      // Crée une requête pour récupérer des documents dans la collection "todos"
+      const q = query(
+        collection(database, "todos"),
+        where("userId", "==", auth.currentUser.uid)
+      );
+      // Effectuer la requête pour obtenir le querySnapshot
+      const querySnapshot = await getDocs(q);
+      // Pour chaque document (doc) dans le résultat de la requête (querySnapshot)
+      querySnapshot.forEach((doc) => {
+        // Ajoute une opération de suppression dans le lot (batch) pour le document actuel (doc)
+        batch.delete(doc.ref);
+      });
+
+      // Exécution du lot de suppression
+      await batch.commit();
 
       // Suppression du compte de l'utilisateur
       await deleteUser(auth.currentUser);
-
-      // Affichage d'une alerte en cas de succès
+      // Affichage d'une alerte de succès
       Alert.alert('Succès', 'Compte supprimé avec succès.');
-
-      // Déconnexion de l'utilisateur après la suppression du compte
+      // Déconnexion de l'utilisateur
       await signOut(auth);
-      // Redirection vers la page de connexion
+      // Redirection vers l'écran de connexion ('Login') après la suppression réussie du compte
       navigation.navigate('Login');
     } catch (error) {
-      // En cas d'erreur, affichage d'une alerte avec un message d'erreur
-      Alert.alert('Une erreur s\'est produite', 'Assurez-vous de fournir le mot de passe correct pour supprimer votre compte.');
+      // Définit le message d'erreur pour affichage éventuel à l'utilisateur
+      setErrorMessage(error.message);
+      // Affiche une alerte avec le message d'erreur détaillé
+      Alert.alert('Une erreur s\'est produite', error.message);
     }
+  };
 
 
+  const confirmDeleteUser = () => {
+    // Affichage d'une alerte avec les options Oui et Non, et la fonction handleDeleteUserAndToDos comme action si Oui est sélectionné
+    Alert.alert(
+      "Suppression de votre compte", // Titre de l'alerte
+      "Êtes-vous sûr ?", // Message de l'alerte
+      [
+        { text: "Non" }, // Option "Non" de l'alerte
+        { text: "Oui", onPress: handleDeleteUserAndToDos }, // Option "Oui" de l'alerte avec l'action handleDeleteUserAndToDos
+      ],
+      { cancelable: false } // La boîte de dialogue ne peut pas être annulée en appuyant à l'extérieur
+    );
   };
 
   return (
@@ -155,7 +215,7 @@ const UserProfileScreen = ({ navigation }) => {
             onChangeText={setNewEmail}  // Fonction appelée lorsqu'il y a un changement dans le champ de texte, mettant à jour la variable 'newEmail'
           />
           {/* TouchableOpacity pour valider la modification de l'email */}
-          <TouchableOpacity style={styles.iconButton} onPress={handleUpdateEmail}>
+          <TouchableOpacity style={styles.iconButton} onPress={confirmUpdateEmail}>
             {/* Icône de validation */}
             <FontAwesomeIcon icon={faCheck} size={24} color="#fff" />
           </TouchableOpacity>
@@ -177,13 +237,13 @@ const UserProfileScreen = ({ navigation }) => {
             autoCorrect={false}  // Désactive la correction automatique
           />
           {/* TouchableOpacity pour valider la modification du mot de passe */}
-          <TouchableOpacity style={styles.iconButton} onPress={handleUpdatePassword}>
+          <TouchableOpacity style={styles.iconButton} onPress={confirmUpdatePassword}>
             {/* Icône de validation */}
             <FontAwesomeIcon icon={faCheck} size={24} color="#fff" />
           </TouchableOpacity>
         </View>
         {/* TouchableOpacity pour supprimer le compte de l'utilisateur, déclenche la fonction handleDeleteUser */}
-        <TouchableOpacity style={styles.button} onPress={handleDeleteUser}>
+        <TouchableOpacity style={styles.button} onPress={confirmDeleteUser}>
           {/* Texte stylisé dans le bouton */}
           <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Supprimer votre compte</Text>
         </TouchableOpacity>
